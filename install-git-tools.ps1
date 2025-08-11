@@ -92,14 +92,20 @@ Set-Alias -Name gm -Value gmerge
 Set-Alias -Name gt -Value gtag
 Set-Alias -Name glg -Value glog
 
+# Comando de ajuda
+Set-Alias -Name githelp -Value "$installDir\git-help.sh"
+Set-Alias -Name help -Value githelp
+Set-Alias -Name ghelp -Value githelp
+
 # Funcoes para melhor compatibilidade
 function Invoke-GitMenu { & "$installDir\git-menu.sh" }
 function Invoke-GitCommit { & "$installDir\git-commit.sh" @args }
 function Invoke-GitSync { & "$installDir\git-sync.sh" @args }
 function Invoke-GitBranch { & "$installDir\git-branch.sh" }
 function Invoke-GitStash { & "$installDir\git-stash.sh" }
+function Invoke-GitHelp { & "$installDir\git-help.sh" }
 
-Write-Host "Git Tools carregado! Use 'gitmenu' para comecar." -ForegroundColor Green
+Write-Host "Git Tools carregado! Use 'gitmenu' para comecar ou 'githelp' para ajuda." -ForegroundColor Green
 "@
 
 $aliasesContent | Out-File -FilePath $aliasesFile -Encoding UTF8
@@ -130,6 +136,7 @@ if "%1"=="" (
     echo   gsync      - Sincronizacao completa
     echo   gbranch    - Gerenciar branches
     echo   gstash     - Gerenciar stashes
+    echo   githelp    - Ver ajuda completa
     echo.
     echo Exemplo: git-tools.bat gitmenu
 ) else (
@@ -170,8 +177,14 @@ Write-ColorOutput "   - gitmenu (menu principal)" "White"
 Write-ColorOutput "   - gcommit (commit rapido)" "White"
 Write-ColorOutput "   - gsync (sincronizacao completa)" "White"
 Write-ColorOutput "   - gbranch (gerenciar branches)" "White"
+Write-ColorOutput "   - githelp (ver ajuda completa)" "White"
+Write-Host ""
+Write-ColorOutput "TESTE AGORA:" "Green"
+Write-ColorOutput "   'githelp' - Para ver todos os comandos" "White"
+Write-ColorOutput "   'gitmenu' - Para abrir o menu principal" "White"
 Write-Host ""
 Write-ColorOutput "DICA: Use 'gitmenu' para acessar o menu principal!" "Yellow"
+Write-ColorOutput "DICA: Use 'githelp' para ver todos os comandos!" "Yellow"
 Write-Host ""
 Write-ColorOutput "Para desinstalar: . '$uninstallScript'" "Blue"
 Write-ColorOutput "Scripts instalados em: $installDir" "Blue"
