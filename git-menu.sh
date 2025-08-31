@@ -201,20 +201,23 @@ main_menu() {
         echo ""
         echo -e "${PURPLE}═══════════════════════════════════════${NC}"
         echo ""
+        echo "🚀 INICIAR TRABALHO:"
+        echo "  1) 🌿 Iniciar edição (com branch nova)"
+        echo ""
         echo "📋 OPERAÇÕES BÁSICAS:"
-        echo "  1) 💾 Commit rápido"
-        echo "  2) 📥 Pull (atualizar do remoto)"
-        echo "  3) 📤 Push (enviar para remoto)"
-        echo "  4) 🔄 Sync (sincronização completa)"
+        echo "  2) 💾 Commit rápido"
+        echo "  3) 📥 Pull (atualizar do remoto)"
+        echo "  4) 📤 Push (enviar para remoto)"
+        echo "  5) 🔄 Sync (sincronização completa)"
         echo ""
         echo "🌿 GERENCIAMENTO:"
-        echo "  5) 📑 Gerenciar branches"
-        echo "  6) 📊 Ver status detalhado"
-        echo "  7) 📜 Ver histórico/logs"
+        echo "  6) 📑 Gerenciar branches"
+        echo "  7) 📊 Ver status detalhado"
+        echo "  8) 📜 Ver histórico/logs"
         echo ""
         echo "⚙️  CONFIGURAÇÕES:"
-        echo "  8) 🔧 Configuração inicial"
-        echo "  9) 🔍 Executar comando Git personalizado"
+        echo "  9) 🔧 Configuração inicial"
+        echo " 10) 🔍 Executar comando Git personalizado"
         echo ""
         echo "  0) 🚪 Sair"
         echo ""
@@ -224,25 +227,28 @@ main_menu() {
         
         case $choice in
             1)
+                run_script "git-start-editing.sh"
+                ;;
+            2)
                 echo ""
                 read -p "Mensagem do commit (Enter para padrão): " commit_msg
                 run_script "git-commit.sh" "$commit_msg"
                 ;;
-            2)
+            3)
                 run_script "git-pull.sh"
                 ;;
-            3)
+            4)
                 run_script "git-push.sh"
                 ;;
-            4)
+            5)
                 echo ""
                 read -p "Mensagem do commit (Enter para padrão): " commit_msg
                 run_script "git-sync.sh" "$commit_msg"
                 ;;
-            5)
+            6)
                 run_script "git-branch.sh"
                 ;;
-            6)
+            7)
                 echo ""
                 echo -e "${CYAN}=== STATUS DETALHADO ===${NC}"
                 echo ""
@@ -251,13 +257,13 @@ main_menu() {
                 echo -e "${CYAN}=== MUDANÇAS ===${NC}"
                 git diff --stat
                 ;;
-            7)
+            8)
                 show_logs
                 ;;
-            8)
+            9)
                 initial_setup
                 ;;
-            9)
+            10)
                 echo ""
                 echo "Digite o comando Git (sem 'git' no início):"
                 read -p "git " git_command

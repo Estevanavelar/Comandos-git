@@ -33,6 +33,7 @@ echo 📋 COMANDOS DISPONÍVEIS:
 echo.
 echo 🎯 OPERAÇÕES BÁSICAS:
 echo   menu     - Menu interativo principal
+echo   start    - Iniciar edição (com branch nova)
 echo   commit   - Commit rápido
 echo   comitar  - Commit alternativo
 echo   pull     - Atualizar do remoto
@@ -48,6 +49,7 @@ echo   log      - Ver histórico/logs
 echo.
 echo 💡 EXEMPLOS DE USO:
 echo   git-tools-portable.bat menu
+echo   git-tools-portable.bat start
 echo   git-tools-portable.bat commit "feat: nova funcionalidade"
 echo   git-tools-portable.bat sync "atualizações do dia"
 echo   git-tools-portable.bat branch
@@ -133,19 +135,22 @@ if errorlevel 1 (
 echo.
 echo ═══════════════════════════════════════
 echo.
+echo 🚀 INICIAR TRABALHO:
+echo   1) 🌿 Iniciar edição (com branch nova)
+echo.
 echo 📋 OPERAÇÕES BÁSICAS:
-echo   1) 💾 Commit rápido
-echo   2) 📥 Pull (atualizar do remoto)
-echo   3) 📤 Push (enviar para remoto)
-echo   4) 🔄 Sync (sincronização completa)
+echo   2) 💾 Commit rápido
+echo   3) 📥 Pull (atualizar do remoto)
+echo   4) 📤 Push (enviar para remoto)
+echo   5) 🔄 Sync (sincronização completa)
 echo.
 echo 🌿 GERENCIAMENTO:
-echo   5) 📑 Gerenciar branches
-echo   6) 📊 Ver status detalhado
-echo   7) 📜 Ver histórico/logs
-echo   8) 📦 Gerenciar stashes
-echo   9) 🔀 Gerenciar merges
-echo  10) 🏷️  Gerenciar tags
+echo   6) 📑 Gerenciar branches
+echo   7) 📊 Ver status detalhado
+echo   8) 📜 Ver histórico/logs
+echo   9) 📦 Gerenciar stashes
+echo  10) 🔀 Gerenciar merges
+echo  11) 🏷️  Gerenciar tags
 echo.
 echo   0) 🚪 Sair
 echo.
@@ -154,20 +159,22 @@ echo.
 set /p "choice=Escolha uma opção: "
 
 if "!choice!"=="1" (
+    call :run_script "git-start-editing"
+) else if "!choice!"=="2" (
     echo.
     set /p "commit_msg=Mensagem do commit (Enter para padrão): "
     call :run_script "git-commit" "!commit_msg!"
-) else if "!choice!"=="2" (
-    call :run_script "git-pull"
 ) else if "!choice!"=="3" (
-    call :run_script "git-push"
+    call :run_script "git-pull"
 ) else if "!choice!"=="4" (
+    call :run_script "git-push"
+) else if "!choice!"=="5" (
     echo.
     set /p "commit_msg=Mensagem do commit (Enter para padrão): "
     call :run_script "git-sync" "!commit_msg!"
-) else if "!choice!"=="5" (
-    call :run_script "git-branch"
 ) else if "!choice!"=="6" (
+    call :run_script "git-branch"
+) else if "!choice!"=="7" (
     echo.
     echo === STATUS DETALHADO ===
     echo.
@@ -175,13 +182,13 @@ if "!choice!"=="1" (
     echo.
     echo === MUDANÇAS ===
     git diff --stat
-) else if "!choice!"=="7" (
-    call :run_script "git-log"
 ) else if "!choice!"=="8" (
-    call :run_script "git-stash"
+    call :run_script "git-log"
 ) else if "!choice!"=="9" (
-    call :run_script "git-merge"
+    call :run_script "git-stash"
 ) else if "!choice!"=="10" (
+    call :run_script "git-merge"
+) else if "!choice!"=="11" (
     call :run_script "git-tag"
 ) else if "!choice!"=="0" (
     echo.
@@ -204,6 +211,11 @@ if "%~1"=="" (
 
 if "%~1"=="menu" (
     call :show_menu
+    goto :eof
+)
+
+if "%~1"=="start" (
+    call :run_script "git-start-editing" %*
     goto :eof
 )
 

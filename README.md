@@ -10,6 +10,21 @@ Menu principal com todas as funcionalidades disponíveis.
 ./git-menu.sh
 ```
 
+### 1.1. **git-start-editing.sh** - Iniciar Edição com Branch Nova
+Script inteligente para iniciar uma nova sessão de edição, criando automaticamente uma branch quando necessário.
+```bash
+./git-start-editing.sh
+```
+
+**Funcionalidades do git-start-editing.sh:**
+- 🚀 Inicia edição com workflow otimizado
+- 🌿 Criação automática de branch com tipos predefinidos (feature/, bugfix/, fix/, docs/, style/, perf/, test/, refactor/)
+- 🔄 Gerenciamento inteligente de mudanças pendentes (commit, stash ou descartar)
+- 📥 Atualização automática do repositório antes de criar branch
+- 🎯 Opções flexíveis de base para nova branch (atual, main/master, ou específica)
+- 📤 Push automático opcional da nova branch
+- ✏️ Possibilidade de continuar na branch atual ou trocar para existente
+
 ### 2. **git-commit.sh** - Commit Rápido
 Adiciona todas as mudanças e faz commit.
 ```bash
@@ -282,6 +297,7 @@ alias gs='./git-sync.sh'
 alias gb='./git-branch.sh'
 alias gm='./git-menu.sh'
 # Novos scripts
+alias gse='./git-start-editing.sh'
 alias gst='./git-stash.sh'
 alias gt='./git-tag.sh'
 alias glog='./git-log.sh'
@@ -308,9 +324,10 @@ source ~/.bashrc
 ## 📊 Casos de Uso Comuns
 
 ### Fluxo de Desenvolvimento
-1. **Início do dia**: `./git-pull.sh` para atualizar
+1. **Início de nova funcionalidade**: `./git-start-editing.sh` para criar branch e preparar ambiente
 2. **Durante o trabalho**: `./git-stash.sh` para salvar mudanças temporárias
-3. **Final do dia**: `./git-sync.sh` para commit e push
+3. **Commits rápidos**: `./git-commit.sh` para commits durante desenvolvimento
+4. **Final do dia**: `./git-sync.sh` para commit e push
 
 ### Gerenciamento de Versões
 1. **Criar release**: `./git-tag.sh` para marcar versão
