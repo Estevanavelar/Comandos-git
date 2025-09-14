@@ -48,7 +48,7 @@ Write-ColorOutput "Copiando scripts para $installDir..." "Yellow"
 Copy-Item "*.sh" $installDir -Force
 Copy-Item "*.bat" $installDir -Force
 
-# Cria arquivo de configuração global
+# Cria arquivo de configuracao global
 $configFile = "$installDir\git-tools-config.json"
 $configContent = @{
     "install_dir" = $installDir
@@ -59,7 +59,7 @@ $configContent = @{
 } | ConvertTo-Json -Depth 3
 
 $configContent | Out-File -FilePath $configFile -Encoding UTF8
-Write-ColorOutput "Arquivo de configuração criado: $configFile" "Green"
+Write-ColorOutput "Arquivo de configuracao criado: $configFile" "Green"
 
 # Cria arquivo de perfil PowerShell
 $profilePath = $PROFILE.CurrentUserAllHosts
@@ -73,87 +73,61 @@ if (-not (Test-Path $profileDir)) {
 $aliasesFile = "$installDir\git-tools-aliases.ps1"
 Write-ColorOutput "Criando arquivo de aliases PowerShell..." "Yellow"
 
-# Função para executar scripts bash do Git
+# Cria o conteudo dos aliases com codificacao correta
+$aliasesContent = @'
+# Git Tools - Aliases Globais para PowerShell
+# Carregado automaticamente pelo perfil
+# Funciona de qualquer pasta do sistema
+
+# Configuracao global
+$GIT_TOOLS_DIR = "$env:USERPROFILE\.git-tools"
+
+# Funcao para executar scripts bash do Git
 function Invoke-GitScript {
     param(
         [string]$ScriptName,
         [string[]]$Arguments = @()
     )
     
-    $scriptPath = "$installDir\$ScriptName.sh"
+    $scriptPath = "$GIT_TOOLS_DIR\$ScriptName.sh"
     if (Test-Path $scriptPath) {
         # Usa o bash do Git para executar scripts .sh
         $gitBash = "${env:ProgramFiles}\Git\bin\bash.exe"
         if (Test-Path $gitBash) {
             & $gitBash $scriptPath @Arguments
         } else {
-            # Fallback para WSL ou Git for Windows em localização diferente
+            # Fallback para WSL ou Git for Windows em localizacao diferente
             $gitBash = "${env:ProgramFiles(x86)}\Git\bin\bash.exe"
             if (Test-Path $gitBash) {
                 & $gitBash $scriptPath @Arguments
             } else {
-                Write-Error "Git Bash não encontrado! Instale o Git for Windows."
+                Write-Error "Git Bash nao encontrado! Instale o Git for Windows."
             }
         }
     } else {
-        Write-Error "Script $ScriptName.sh não encontrado em $installDir"
-    }
-}
-
-$aliasesContent = @"
-# Git Tools - Aliases Globais para PowerShell
-# Carregado automaticamente pelo perfil
-# Funciona de qualquer pasta do sistema
-
-# Configuração global
-`$GIT_TOOLS_DIR = "$installDir"
-
-# Função para executar scripts bash do Git
-function Invoke-GitScript {
-    param(
-        [string]`$ScriptName,
-        [string[]]`$Arguments = @()
-    )
-    
-    `$scriptPath = "`$GIT_TOOLS_DIR\`$ScriptName.sh"
-    if (Test-Path `$scriptPath) {
-        # Usa o bash do Git para executar scripts .sh
-        `$gitBash = "`${env:ProgramFiles}\Git\bin\bash.exe"
-        if (Test-Path `$gitBash) {
-            & `$gitBash `$scriptPath @Arguments
-        } else {
-            # Fallback para WSL ou Git for Windows em localização diferente
-            `$gitBash = "`${env:ProgramFiles(x86)}\Git\bin\bash.exe"
-            if (Test-Path `$gitBash) {
-                & `$gitBash `$scriptPath @Arguments
-            } else {
-                Write-Error "Git Bash não encontrado! Instale o Git for Windows."
-            }
-        }
-    } else {
-        Write-Error "Script `$ScriptName.sh não encontrado em `$GIT_TOOLS_DIR"
+        Write-Error "Script $ScriptName.sh nao encontrado em $GIT_TOOLS_DIR"
     }
 }
 
 # Menu principal
-function gitmenu { Invoke-GitScript "git-menu" `$args }
+function gitmenu { Invoke-GitScript "git-menu" $args }
 Set-Alias -Name gmenu -Value gitmenu
 
 # Operacoes basicas
-function gcommit { Invoke-GitScript "git-commit" `$args }
-function gcomitar { Invoke-GitScript "git-commit" `$args }
-function gpull { Invoke-GitScript "git-pull" `$args }
-function gpush { Invoke-GitScript "git-push" `$args }
-function gsync { Invoke-GitScript "git-sync" `$args }
+function gcommit { Invoke-GitScript "git-commit" $args }
+function gcomitar { Invoke-GitScript "git-commit" $args }
+function gpull { Invoke-GitScript "git-pull" $args }
+function gpush { Invoke-GitScript "git-push" $args }
+function gsync { Invoke-GitScript "git-sync" $args }
 
 # Gerenciamento
-function gbranch { Invoke-GitScript "git-branch" `$args }
-function gstash { Invoke-GitScript "git-stash" `$args }
-function gmerge { Invoke-GitScript "git-merge" `$args }
-function gtag { Invoke-GitScript "git-tag" `$args }
-function glog { Invoke-GitScript "git-log" `$args }
+function gbranch { Invoke-GitScript "git-branch" $args }
+function gstash { Invoke-GitScript "git-stash" $args }
+function gmerge { Invoke-GitScript "git-merge" $args }
+function gtag { Invoke-GitScript "git-tag" $args }
+function glog { Invoke-GitScript "git-log" $args }
 
-# Aliases curtos (apenas os que não conflitam com comandos existentes)
+# Aliases curtos (apenas os que nao conflitam com comandos existentes)
 Set-Alias -Name gs -Value gsync
 Set-Alias -Name gb -Value gbranch
 Set-Alias -Name gst -Value gstash
@@ -161,39 +135,40 @@ Set-Alias -Name gt -Value gtag
 Set-Alias -Name glg -Value glog
 
 # Comando de ajuda
-function githelp { Invoke-GitScript "git-help" `$args }
+function githelp { Invoke-GitScript "git-help" $args }
 Set-Alias -Name ghelp -Value githelp
 Set-Alias -Name help -Value githelp
 
-# Função para iniciar edição
-function gstart { Invoke-GitScript "git-start-editing" `$args }
+# Funcao para iniciar edicao
+function gstart { Invoke-GitScript "git-start-editing" $args }
 Set-Alias -Name gedit -Value gstart
 
-# Função para verificar status
+# Funcao para verificar status
 function gstatus { 
-    Write-Host "📊 Git Tools - Status Global" -ForegroundColor Cyan
-    Write-Host "📁 Diretório de instalação: `$GIT_TOOLS_DIR" -ForegroundColor White
-    Write-Host "✅ Scripts disponíveis:" -ForegroundColor Green
+    Write-Host "Git Tools - Status Global" -ForegroundColor Cyan
+    Write-Host "Diretorio de instalacao: $GIT_TOOLS_DIR" -ForegroundColor White
+    Write-Host "Scripts disponiveis:" -ForegroundColor Green
     
-    `$scripts = @("git-menu", "git-commit", "git-pull", "git-push", "git-sync", 
+    $scripts = @("git-menu", "git-commit", "git-pull", "git-push", "git-sync", 
                   "git-branch", "git-stash", "git-merge", "git-tag", "git-log", 
                   "git-help", "git-start-editing")
     
-    foreach (`$script in `$scripts) {
-        if (Test-Path "`$GIT_TOOLS_DIR\`$script.sh") {
-            Write-Host "   ✅ `$script.sh" -ForegroundColor Green
+    foreach ($script in $scripts) {
+        if (Test-Path "$GIT_TOOLS_DIR\$script.sh") {
+            Write-Host "   OK $script.sh" -ForegroundColor Green
         } else {
-            Write-Host "   ❌ `$script.sh" -ForegroundColor Red
+            Write-Host "   ERRO $script.sh" -ForegroundColor Red
         }
     }
     
-    Write-Host "`n🚀 Use 'githelp' para ver todos os comandos!" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Use 'githelp' para ver todos os comandos!" -ForegroundColor Yellow
 }
 
-Write-Host "🚀 Git Tools v2.0 carregado globalmente!" -ForegroundColor Green
-Write-Host "💡 Use 'gitmenu' para começar ou 'githelp' para ajuda." -ForegroundColor Cyan
-Write-Host "📊 Use 'gstatus' para verificar o status da instalação." -ForegroundColor Blue
-"@
+Write-Host "Git Tools v2.0 carregado globalmente!" -ForegroundColor Green
+Write-Host "Use 'gitmenu' para comecar ou 'githelp' para ajuda." -ForegroundColor Cyan
+Write-Host "Use 'gstatus' para verificar o status da instalacao." -ForegroundColor Blue
+'@
 
 $aliasesContent | Out-File -FilePath $aliasesFile -Encoding UTF8
 
@@ -235,30 +210,34 @@ $batchContent | Out-File -FilePath $batchFile -Encoding ASCII
 
 # Cria script de desinstalacao
 $uninstallScript = "$installDir\uninstall.ps1"
-$uninstallContent = @"
+$uninstallContent = @'
 # Script de desinstalacao Git Tools
 Write-Host "Desinstalando Git Tools..." -ForegroundColor Yellow
 
 # Remove do perfil PowerShell
-`$profilePath = `$PROFILE.CurrentUserAllHosts
-`$profileContent = Get-Content `$profilePath -ErrorAction SilentlyContinue
-if (`$profileContent) {
-    `$newContent = `$profileContent | Where-Object { `$_ -notmatch "git-tools" }
-    Set-Content `$profilePath `$newContent
+$profilePath = $PROFILE.CurrentUserAllHosts
+$profileContent = Get-Content $profilePath -ErrorAction SilentlyContinue
+if ($profileContent) {
+    $newContent = $profileContent | Where-Object { $_ -notmatch "git-tools" }
+    Set-Content $profilePath $newContent
 }
 
 # Remove diretorio
-Remove-Item "$installDir" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "$env:USERPROFILE\.git-tools" -Recurse -Force -ErrorAction SilentlyContinue
 Write-Host "Git Tools desinstalado com sucesso!" -ForegroundColor Green
-"@
+'@
 
 $uninstallContent | Out-File -FilePath $uninstallScript -Encoding UTF8
+
+# Carrega os aliases automaticamente
+Write-ColorOutput "Carregando aliases automaticamente..." "Blue"
+. $aliasesFile
 
 Write-Host ""
 Write-ColorOutput "INSTALACAO CONCLUIDA!" "Green"
 Write-Host ""
 Write-ColorOutput "PROXIMOS PASSOS:" "Cyan"
-Write-ColorOutput "1. Reinicie o PowerShell ou execute: . '$aliasesFile'" "White"
+Write-ColorOutput "1. Os comandos ja estao funcionando nesta sessao!" "White"
 Write-ColorOutput "2. Use os comandos em qualquer pasta:" "White"
 Write-ColorOutput "   - gitmenu (menu principal)" "White"
 Write-ColorOutput "   - gcommit (commit rapido)" "White"
@@ -270,8 +249,8 @@ Write-ColorOutput "TESTE AGORA:" "Green"
 Write-ColorOutput "   'githelp' - Para ver todos os comandos" "White"
 Write-ColorOutput "   'gitmenu' - Para abrir o menu principal" "White"
 Write-Host ""
-Write-ColorOutput "DICA: Use 'gitmenu' para acessar o menu principal!" "Yellow"
-Write-ColorOutput "DICA: Use 'githelp' para ver todos os comandos!" "Yellow"
+Write-ColorOutput "DICA: Os comandos ja estao funcionando!" "Yellow"
+Write-ColorOutput "DICA: Reinicie o PowerShell para carregamento automatico" "Yellow"
 Write-Host ""
 Write-ColorOutput "Para desinstalar: . '$uninstallScript'" "Blue"
 Write-ColorOutput "Scripts instalados em: $installDir" "Blue"

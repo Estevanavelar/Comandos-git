@@ -106,14 +106,22 @@ run_script() {
     script_name=$1
     shift
     
-    if [ -f "./$script_name" ]; then
+    # Verifica se há uma instalação global primeiro
+    GLOBAL_INSTALL_DIR="$HOME/.git-tools"
+    if [ -f "$GLOBAL_INSTALL_DIR/$script_name" ]; then
+        bash "$GLOBAL_INSTALL_DIR/$script_name" "$@"
+    elif [ -f "./$script_name" ]; then
         if [ ! -x "./$script_name" ]; then
             chmod +x "./$script_name"
         fi
         ./$script_name "$@"
     else
         echo -e "${RED}❌ Script $script_name não encontrado!${NC}"
-        echo "Certifique-se de que todos os scripts estão no mesmo diretório."
+        echo "Verificando localizações:"
+        echo "  Global: $GLOBAL_INSTALL_DIR/$script_name"
+        echo "  Local: ./$script_name"
+        echo ""
+        echo -e "${YELLOW}💡 Execute ./install-git-tools.sh para instalação global${NC}"
     fi
 }
 
