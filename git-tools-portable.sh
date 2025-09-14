@@ -125,14 +125,24 @@ run_script() {
     shift
     local script_path="$SCRIPT_DIR/$script_name.sh"
     
-    if [ -f "$script_path" ]; then
-        # Passa todos os argumentos para o script
-        bash "$script_path" "$@"
+    # Verifica se há uma instalação global primeiro
+    if [ -f "$GLOBAL_INSTALL_DIR/$script_name.sh" ]; then
+        script_path="$GLOBAL_INSTALL_DIR/$script_name.sh"
+        echo -e "${GREEN}✅ Usando script global: $script_name.sh${NC}"
+    elif [ -f "$script_path" ]; then
+        echo -e "${GREEN}✅ Usando script local: $script_name.sh${NC}"
     else
         echo -e "${RED}❌ Script $script_name.sh não encontrado!${NC}"
-        echo -e "${YELLOW}Certifique-se de que todos os scripts estão no diretório: $SCRIPT_DIR${NC}"
+        echo -e "${YELLOW}Verificando localizações:${NC}"
+        echo -e "${WHITE}  Global: $GLOBAL_INSTALL_DIR/$script_name.sh${NC}"
+        echo -e "${WHITE}  Local: $script_path${NC}"
+        echo ""
+        echo -e "${BLUE}💡 Execute ./install-git-tools.sh para instalação global${NC}"
         exit 1
     fi
+    
+    # Executa o script encontrado
+    bash "$script_path" "$@"
 }
 
 # Função para menu interativo

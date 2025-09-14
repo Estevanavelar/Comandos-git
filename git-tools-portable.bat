@@ -109,16 +109,26 @@ REM Função para executar script
 set "script_name=%~1"
 set "script_path=!SCRIPT_DIR!%script_name%.sh"
 
-if exist "!script_path!" (
-    REM Passa todos os argumentos para o script
-    shift
-    "C:\Program Files\Git\bin\bash.exe" "!script_path!" %*
+REM Verifica se há uma instalação global primeiro
+if exist "%GLOBAL_INSTALL_DIR%\%script_name%.sh" (
+    set "script_path=%GLOBAL_INSTALL_DIR%\%script_name%.sh"
+    echo ✅ Usando script global: %script_name%.sh
+) else if exist "!script_path!" (
+    echo ✅ Usando script local: %script_name%.sh
 ) else (
     echo ❌ Script %script_name%.sh não encontrado!
-    echo Certifique-se de que todos os scripts estão no diretório: !SCRIPT_DIR!
+    echo Verificando localizações:
+    echo   Global: %GLOBAL_INSTALL_DIR%\%script_name%.sh
+    echo   Local: !script_path!
+    echo.
+    echo 💡 Execute install-git-tools.ps1 para instalação global
     pause
     exit /b 1
 )
+
+REM Executa o script encontrado
+shift
+"C:\Program Files\Git\bin\bash.exe" "!script_path!" %*
 goto :eof
 
 REM Função para menu interativo
