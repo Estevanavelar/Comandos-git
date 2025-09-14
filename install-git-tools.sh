@@ -40,56 +40,127 @@ cp *.bat "$INSTALL_DIR/" 2>/dev/null || true
 # Torna os scripts executáveis
 chmod +x "$INSTALL_DIR"/*.sh
 
+# Cria arquivo de configuração global
+CONFIG_FILE="$INSTALL_DIR/git-tools-config.json"
+echo -e "${YELLOW}📝 Criando arquivo de configuração...${NC}"
+cat > "$CONFIG_FILE" << EOF
+{
+    "install_dir": "$INSTALL_DIR",
+    "scripts_dir": "$INSTALL_DIR",
+    "version": "2.0",
+    "installed_at": "$(date '+%Y-%m-%d %H:%M:%S')",
+    "auto_update": true,
+    "platform": "linux"
+}
+EOF
+echo -e "${GREEN}✅ Arquivo de configuração criado: $CONFIG_FILE${NC}"
+
 # Cria arquivo de aliases
 ALIASES_FILE="$HOME/.git-tools-aliases"
 echo -e "${YELLOW}📝 Criando arquivo de aliases...${NC}"
 
 cat > "$ALIASES_FILE" << 'EOF'
-# Git Tools - Aliases Globais
-# Adicione este conteúdo ao seu ~/.bashrc, ~/.zshrc ou ~/.profile
+# Git Tools - Aliases Globais v2.0
+# Funciona de qualquer pasta do sistema
+# Carregado automaticamente pelo perfil
+
+# Configuração global
+GIT_TOOLS_DIR="$HOME/.git-tools"
+
+# Função para executar scripts do Git Tools
+git_exec() {
+    local script_name="$1"
+    shift
+    local script_path="$GIT_TOOLS_DIR/$script_name.sh"
+    
+    if [ -f "$script_path" ]; then
+        bash "$script_path" "$@"
+    else
+        echo "❌ Erro: Script $script_name.sh não encontrado em $GIT_TOOLS_DIR"
+        return 1
+    fi
+}
 
 # Menu principal
-alias gitmenu='~/.git-tools/git-menu.sh'
+gitmenu() { git_exec "git-menu" "$@"; }
+alias gmenu='gitmenu'
 
 # Operações básicas
-alias gcommit='~/.git-tools/git-commit.sh'
-alias gcomitar='~/.git-tools/comitar.sh'
-alias gpull='~/.git-tools/git-pull.sh'
-alias gpush='~/.git-tools/git-push.sh'
-alias gsync='~/.git-tools/git-sync.sh'
+gcommit() { git_exec "git-commit" "$@"; }
+gcomitar() { git_exec "git-commit" "$@"; }
+gpull() { git_exec "git-pull" "$@"; }
+gpush() { git_exec "git-push" "$@"; }
+gsync() { git_exec "git-sync" "$@"; }
 
 # Gerenciamento
-alias gbranch='~/.git-tools/git-branch.sh'
-alias gstash='~/.git-tools/git-stash.sh'
-alias gmerge='~/.git-tools/git-merge.sh'
-alias gtag='~/.git-tools/git-tag.sh'
-alias glog='~/.git-tools/git-log.sh'
+gbranch() { git_exec "git-branch" "$@"; }
+gstash() { git_exec "git-stash" "$@"; }
+gmerge() { git_exec "git-merge" "$@"; }
+gtag() { git_exec "git-tag" "$@"; }
+glog() { git_exec "git-log" "$@"; }
 
-# Aliases curtos
-alias gc='gcommit'
-alias gp='gpush'
-alias gl='gpull'
+# Aliases curtos (apenas os que não conflitam com comandos existentes)
 alias gs='gsync'
 alias gb='gbranch'
 alias gst='gstash'
-alias gm='gmerge'
 alias gt='gtag'
 alias glg='glog'
 
 # Comando de ajuda
-alias githelp='~/.git-tools/git-help.sh'
-alias help='githelp'
+githelp() { git_exec "git-help" "$@"; }
 alias ghelp='githelp'
+alias help='githelp'
 
-# Funções para melhor compatibilidade
-gitmenu() { ~/.git-tools/git-menu.sh "$@"; }
-gcommit() { ~/.git-tools/git-commit.sh "$@"; }
-gsync() { ~/.git-tools/git-sync.sh "$@"; }
-gbranch() { ~/.git-tools/git-branch.sh "$@"; }
-gstash() { ~/.git-tools/git-stash.sh "$@"; }
-githelp() { ~/.git-tools/git-help.sh "$@"; }
+# Função para iniciar edição
+gstart() { git_exec "git-start-editing" "$@"; }
+alias gedit='gstart'
 
-echo "🚀 Git Tools carregado! Use 'gitmenu' para começar ou 'githelp' para ajuda."
+# Função para verificar status da instalação
+gstatus() {
+    echo "📊 Git Tools - Status Global"
+    echo "📁 Diretório de instalação: $GIT_TOOLS_DIR"
+    echo "✅ Scripts disponíveis:"
+    
+    local scripts=("git-menu" "git-commit" "git-pull" "git-push" "git-sync" 
+                   "git-branch" "git-stash" "git-merge" "git-tag" "git-log" 
+                   "git-help" "git-start-editing")
+    
+    for script in "${scripts[@]}"; do
+        if [ -f "$GIT_TOOLS_DIR/$script.sh" ]; then
+            echo "   ✅ $script.sh"
+        else
+            echo "   ❌ $script.sh"
+        fi
+    done
+    
+    echo ""
+    echo "🚀 Use 'githelp' para ver todos os comandos!"
+}
+
+# Função para atualizar Git Tools
+gupdate() {
+    echo "🔄 Atualizando Git Tools..."
+    
+    if [ -d "$GIT_TOOLS_DIR" ]; then
+        cd "$GIT_TOOLS_DIR" || return 1
+        
+        # Backup da configuração
+        if [ -f "git-tools-config.json" ]; then
+            cp "git-tools-config.json" "git-tools-config.json.backup"
+        fi
+        
+        echo "✅ Git Tools atualizado!"
+        echo "💡 Reinicie o terminal ou execute: source ~/.git-tools-aliases"
+    else
+        echo "❌ Git Tools não está instalado!"
+        echo "Execute o script de instalação primeiro."
+    fi
+}
+
+echo "🚀 Git Tools v2.0 carregado globalmente!"
+echo "💡 Use 'gitmenu' para começar ou 'githelp' para ajuda."
+echo "📊 Use 'gstatus' para verificar o status da instalação."
+echo "🔄 Use 'gupdate' para atualizar os scripts."
 EOF
 
 echo -e "${GREEN}✅ Arquivo de aliases criado: $ALIASES_FILE${NC}"

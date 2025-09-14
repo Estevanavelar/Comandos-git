@@ -7,6 +7,18 @@ setlocal enabledelayedexpansion
 REM Diretório onde está este arquivo
 set "SCRIPT_DIR=%~dp0"
 
+REM Verifica se há uma instalação global do Git Tools
+set "GLOBAL_INSTALL_DIR=%USERPROFILE%\.git-tools"
+if exist "%GLOBAL_INSTALL_DIR%" (
+    echo ✅ Instalação global do Git Tools encontrada!
+    echo 📁 Usando scripts de: %GLOBAL_INSTALL_DIR%
+    set "SCRIPT_DIR=%GLOBAL_INSTALL_DIR%"
+) else (
+    echo ⚠️  Instalação global não encontrada, usando versão portátil.
+    echo 💡 Para instalar globalmente, execute: install-git-tools.ps1
+    echo 📁 Usando scripts de: %SCRIPT_DIR%
+)
+
 REM Verifica se Git está instalado
 git --version >nul 2>&1
 if errorlevel 1 (

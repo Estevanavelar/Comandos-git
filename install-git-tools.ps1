@@ -48,6 +48,19 @@ Write-ColorOutput "Copiando scripts para $installDir..." "Yellow"
 Copy-Item "*.sh" $installDir -Force
 Copy-Item "*.bat" $installDir -Force
 
+# Cria arquivo de configuração global
+$configFile = "$installDir\git-tools-config.json"
+$configContent = @{
+    "install_dir" = $installDir
+    "scripts_dir" = $installDir
+    "version" = "2.0"
+    "installed_at" = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+    "auto_update" = $true
+} | ConvertTo-Json -Depth 3
+
+$configContent | Out-File -FilePath $configFile -Encoding UTF8
+Write-ColorOutput "Arquivo de configuração criado: $configFile" "Green"
+
 # Cria arquivo de perfil PowerShell
 $profilePath = $PROFILE.CurrentUserAllHosts
 $profileDir = Split-Path $profilePath -Parent
@@ -60,52 +73,126 @@ if (-not (Test-Path $profileDir)) {
 $aliasesFile = "$installDir\git-tools-aliases.ps1"
 Write-ColorOutput "Criando arquivo de aliases PowerShell..." "Yellow"
 
+# Função para executar scripts bash do Git
+function Invoke-GitScript {
+    param(
+        [string]$ScriptName,
+        [string[]]$Arguments = @()
+    )
+    
+    $scriptPath = "$installDir\$ScriptName.sh"
+    if (Test-Path $scriptPath) {
+        # Usa o bash do Git para executar scripts .sh
+        $gitBash = "${env:ProgramFiles}\Git\bin\bash.exe"
+        if (Test-Path $gitBash) {
+            & $gitBash $scriptPath @Arguments
+        } else {
+            # Fallback para WSL ou Git for Windows em localização diferente
+            $gitBash = "${env:ProgramFiles(x86)}\Git\bin\bash.exe"
+            if (Test-Path $gitBash) {
+                & $gitBash $scriptPath @Arguments
+            } else {
+                Write-Error "Git Bash não encontrado! Instale o Git for Windows."
+            }
+        }
+    } else {
+        Write-Error "Script $ScriptName.sh não encontrado em $installDir"
+    }
+}
+
 $aliasesContent = @"
-# Git Tools - Aliases para PowerShell
+# Git Tools - Aliases Globais para PowerShell
 # Carregado automaticamente pelo perfil
+# Funciona de qualquer pasta do sistema
+
+# Configuração global
+`$GIT_TOOLS_DIR = "$installDir"
+
+# Função para executar scripts bash do Git
+function Invoke-GitScript {
+    param(
+        [string]`$ScriptName,
+        [string[]]`$Arguments = @()
+    )
+    
+    `$scriptPath = "`$GIT_TOOLS_DIR\`$ScriptName.sh"
+    if (Test-Path `$scriptPath) {
+        # Usa o bash do Git para executar scripts .sh
+        `$gitBash = "`${env:ProgramFiles}\Git\bin\bash.exe"
+        if (Test-Path `$gitBash) {
+            & `$gitBash `$scriptPath @Arguments
+        } else {
+            # Fallback para WSL ou Git for Windows em localização diferente
+            `$gitBash = "`${env:ProgramFiles(x86)}\Git\bin\bash.exe"
+            if (Test-Path `$gitBash) {
+                & `$gitBash `$scriptPath @Arguments
+            } else {
+                Write-Error "Git Bash não encontrado! Instale o Git for Windows."
+            }
+        }
+    } else {
+        Write-Error "Script `$ScriptName.sh não encontrado em `$GIT_TOOLS_DIR"
+    }
+}
 
 # Menu principal
-Set-Alias -Name gitmenu -Value "$installDir\git-menu.sh"
+function gitmenu { Invoke-GitScript "git-menu" `$args }
+Set-Alias -Name gmenu -Value gitmenu
 
 # Operacoes basicas
-Set-Alias -Name gcommit -Value "$installDir\git-commit.sh"
-Set-Alias -Name gcomitar -Value "$installDir\comitar.sh"
-Set-Alias -Name gpull -Value "$installDir\git-pull.sh"
-Set-Alias -Name gpush -Value "$installDir\git-push.sh"
-Set-Alias -Name gsync -Value "$installDir\git-sync.sh"
+function gcommit { Invoke-GitScript "git-commit" `$args }
+function gcomitar { Invoke-GitScript "git-commit" `$args }
+function gpull { Invoke-GitScript "git-pull" `$args }
+function gpush { Invoke-GitScript "git-push" `$args }
+function gsync { Invoke-GitScript "git-sync" `$args }
 
 # Gerenciamento
-Set-Alias -Name gbranch -Value "$installDir\git-branch.sh"
-Set-Alias -Name gstash -Value "$installDir\git-stash.sh"
-Set-Alias -Name gmerge -Value "$installDir\git-merge.sh"
-Set-Alias -Name gtag -Value "$installDir\git-tag.sh"
-Set-Alias -Name glog -Value "$installDir\git-log.sh"
+function gbranch { Invoke-GitScript "git-branch" `$args }
+function gstash { Invoke-GitScript "git-stash" `$args }
+function gmerge { Invoke-GitScript "git-merge" `$args }
+function gtag { Invoke-GitScript "git-tag" `$args }
+function glog { Invoke-GitScript "git-log" `$args }
 
-# Aliases curtos
-Set-Alias -Name gc -Value gcommit
-Set-Alias -Name gp -Value gpush
-Set-Alias -Name gl -Value gpull
+# Aliases curtos (apenas os que não conflitam com comandos existentes)
 Set-Alias -Name gs -Value gsync
 Set-Alias -Name gb -Value gbranch
 Set-Alias -Name gst -Value gstash
-Set-Alias -Name gm -Value gmerge
 Set-Alias -Name gt -Value gtag
 Set-Alias -Name glg -Value glog
 
 # Comando de ajuda
-Set-Alias -Name githelp -Value "$installDir\git-help.sh"
-Set-Alias -Name help -Value githelp
+function githelp { Invoke-GitScript "git-help" `$args }
 Set-Alias -Name ghelp -Value githelp
+Set-Alias -Name help -Value githelp
 
-# Funcoes para melhor compatibilidade
-function Invoke-GitMenu { & "$installDir\git-menu.sh" }
-function Invoke-GitCommit { & "$installDir\git-commit.sh" @args }
-function Invoke-GitSync { & "$installDir\git-sync.sh" @args }
-function Invoke-GitBranch { & "$installDir\git-branch.sh" }
-function Invoke-GitStash { & "$installDir\git-stash.sh" }
-function Invoke-GitHelp { & "$installDir\git-help.sh" }
+# Função para iniciar edição
+function gstart { Invoke-GitScript "git-start-editing" `$args }
+Set-Alias -Name gedit -Value gstart
 
-Write-Host "Git Tools carregado! Use 'gitmenu' para comecar ou 'githelp' para ajuda." -ForegroundColor Green
+# Função para verificar status
+function gstatus { 
+    Write-Host "📊 Git Tools - Status Global" -ForegroundColor Cyan
+    Write-Host "📁 Diretório de instalação: `$GIT_TOOLS_DIR" -ForegroundColor White
+    Write-Host "✅ Scripts disponíveis:" -ForegroundColor Green
+    
+    `$scripts = @("git-menu", "git-commit", "git-pull", "git-push", "git-sync", 
+                  "git-branch", "git-stash", "git-merge", "git-tag", "git-log", 
+                  "git-help", "git-start-editing")
+    
+    foreach (`$script in `$scripts) {
+        if (Test-Path "`$GIT_TOOLS_DIR\`$script.sh") {
+            Write-Host "   ✅ `$script.sh" -ForegroundColor Green
+        } else {
+            Write-Host "   ❌ `$script.sh" -ForegroundColor Red
+        }
+    }
+    
+    Write-Host "`n🚀 Use 'githelp' para ver todos os comandos!" -ForegroundColor Yellow
+}
+
+Write-Host "🚀 Git Tools v2.0 carregado globalmente!" -ForegroundColor Green
+Write-Host "💡 Use 'gitmenu' para começar ou 'githelp' para ajuda." -ForegroundColor Cyan
+Write-Host "📊 Use 'gstatus' para verificar o status da instalação." -ForegroundColor Blue
 "@
 
 $aliasesContent | Out-File -FilePath $aliasesFile -Encoding UTF8
